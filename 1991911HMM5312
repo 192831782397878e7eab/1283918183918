@@ -275,6 +275,30 @@ Tab:CreateButton({
     end
 })
 
+Tab:CreateDivider()
+
+Tab:CreateButton({
+    Name = "Reset To Roblox Avatar",
+    Callback = function()
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+        local player = Players.LocalPlayer
+        local userId = player.UserId
+
+        local success, description = pcall(function()
+            return Players:GetHumanoidDescriptionFromUserId(userId)
+        end)
+
+        if success and description then
+            local data = zibble5019(description)
+            ReplicatedStorage.FunctionConnections.NewAESaveAvatar:InvokeServer(data)
+        else
+            warn("Failed to get HumanoidDescription.")
+        end
+    end
+})
+
 local LoadAvatarFromUserId = Tab:CreateInput({
    Name = "Load Avatar From UserId",
    CurrentValue = "",
@@ -2526,4 +2550,273 @@ local Button = Tab:CreateButton({
       game:GetService("Players").SlayerssUnleashedd.PlayerGui.ShopGui.Background.Content.Main.TopContainer.CoinsContainer.TotalCoins.Text = math.huge
       game:GetService("Players").SlayerssUnleashedd.PlayerGui.ScreenGui.ItemShop.ShopContent.TopBar.ButtonBuyCoins.CoinAmount.Text = math.huge
    end,
+})
+
+local Section = Tab:CreateSection("other stuff")
+
+local FLYING = false
+
+local function zorp4273()
+    FLYING = true
+    repeat task.wait() until game.Players.LocalPlayer and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    local T = game.Players.LocalPlayer.Character.PrimaryPart
+    local CONTROL = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+    local SPEED = 0
+    local BG = Instance.new('BodyGyro')
+    local BV = Instance.new('BodyVelocity')
+
+    BG.P = 9e4
+    BG.Parent = T
+    BV.Parent = T
+    BG.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+    BG.cframe = T.CFrame
+    BV.velocity = Vector3.new(0, 0, 0)
+    BV.maxForce = Vector3.new(9e9, 9e9, 9e9)
+
+    local userInputService = game:GetService("UserInputService")
+
+    local humanoid = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
+    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+    humanoid.PlatformStand = true
+
+    userInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            if input.KeyCode == Enum.KeyCode.W then CONTROL.F = 1 end
+            if input.KeyCode == Enum.KeyCode.S then CONTROL.B = -1 end
+            if input.KeyCode == Enum.KeyCode.A then CONTROL.L = -1 end
+            if input.KeyCode == Enum.KeyCode.D then CONTROL.R = 1 end
+            if input.KeyCode == Enum.KeyCode.Space then CONTROL.E = 1 end
+            if input.KeyCode == Enum.KeyCode.LeftControl then CONTROL.Q = -1 end
+        end
+    end)
+
+    userInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            if input.KeyCode == Enum.KeyCode.W then CONTROL.F = 0 end
+            if input.KeyCode == Enum.KeyCode.S then CONTROL.B = 0 end
+            if input.KeyCode == Enum.KeyCode.A then CONTROL.L = 0 end
+            if input.KeyCode == Enum.KeyCode.D then CONTROL.R = 0 end
+            if input.KeyCode == Enum.KeyCode.Space then CONTROL.E = 0 end
+            if input.KeyCode == Enum.KeyCode.LeftControl then CONTROL.Q = 0 end
+        end
+    end)
+
+    task.spawn(function()
+    while FLYING do
+        task.wait()
+
+        
+        local cam = workspace.CurrentCamera
+        local forward = cam.CFrame.LookVector
+        local right = cam.CFrame.RightVector
+        local up = Vector3.new(0, 1, 0)
+
+        
+        local moveDir = (forward * (CONTROL.F + CONTROL.B)) + (right * (CONTROL.R + CONTROL.L)) + (up * (CONTROL.E + CONTROL.Q))
+        if moveDir.Magnitude > 0 then
+            moveDir = moveDir.Unit
+            SPEED = 50
+        else
+            SPEED = 0
+        end
+
+        BV.Velocity = moveDir * SPEED
+        BG.CFrame = cam.CFrame
+    end
+
+    
+    BG:Destroy()
+    BV:Destroy()
+    humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+    humanoid.PlatformStand = false
+end)
+
+end
+
+local function chonk4891()
+    FLYING = false
+    if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+        local humanoid = game.Players.LocalPlayer.Character.Humanoid
+        humanoid.PlatformStand = false
+        humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+    end
+end
+
+getgenv().WalkSpeedValue = 25
+local BunnyHopActive = false
+local BunnyHopConnection
+
+local Player = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+local Humanoid = Player.Character and Player.Character:FindFirstChildOfClass("Humanoid") or Player.CharacterAdded:Wait():WaitForChild("Humanoid")
+
+RunService.Heartbeat:Connect(function()
+    if BunnyHopActive and Humanoid.WalkSpeed ~= getgenv().WalkSpeedValue then
+        Humanoid.WalkSpeed = getgenv().WalkSpeedValue
+    end
+end)
+
+getgenv().WalkSpeedValue = 25
+local BunnyHopActive = false
+local BunnyHopConnection
+
+local Player = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+local Humanoid = Player.Character and Player.Character:FindFirstChildOfClass("Humanoid") or Player.CharacterAdded:Wait():WaitForChild("Humanoid")
+
+RunService.Heartbeat:Connect(function()
+    if BunnyHopActive and Humanoid.WalkSpeed ~= getgenv().WalkSpeedValue then
+        Humanoid.WalkSpeed = getgenv().WalkSpeedValue
+    end
+end)
+
+local FlyToggle = Tab:CreateToggle({
+    Name = "Fly/Unfly",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(Value)
+        if Value then
+            if FLYING == false then
+                zorp4273()
+            end
+        else
+            if FLYING == true then
+                chonk4891()
+            end
+        end
+    end,
+})
+
+
+local FlyKeybind = Tab:CreateKeybind({
+    Name = "Fly keybind",
+    CurrentKeybind = "F", 
+    HoldToInteract = false,
+    Flag = "FlyKeybind", 
+    Callback = function(Keybind)
+        if FLYING then
+            chonk4891()
+        else
+            zorp4273()
+        end
+    end,
+})
+
+local Input = Tab:CreateInput({
+   Name = "Walkspeed",
+   CurrentValue = "",
+   PlaceholderText = "enter walkspeed",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Input1",
+   Callback = function(Value)
+   getgenv().WalkSpeedValue = Value; 
+local Player = game:service'Players'.LocalPlayer;
+Player.Character.Humanoid:GetPropertyChangedSignal'WalkSpeed':Connect(function()
+Player.Character.Humanoid.WalkSpeed = getgenv().WalkSpeedValue;
+end)
+Player.Character.Humanoid.WalkSpeed = getgenv().WalkSpeedValue;
+   end,
+})
+
+local Input = Tab:CreateInput({
+   Name = "Max Camera Zoom",
+   CurrentValue = "",
+   PlaceholderText = "enter zoom",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Input1",
+   Callback = function(Value)
+        game.Players.LocalPlayer.CameraMaxZoomDistance = (Value)
+
+   end,
+})
+
+local Input = Tab:CreateInput({
+   Name = "Jumppower",
+   CurrentValue = "",
+   PlaceholderText = "enter jumppower",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Input1",
+   Callback = function(Value)
+ getgenv().JumpPowerValue = Value; 
+local Player = game:service'Players'.LocalPlayer;
+Player.Character.Humanoid:GetPropertyChangedSignal'JumpPower':Connect(function()
+Player.Character.Humanoid.JumpPower = getgenv().JumpPowerValue;
+end)
+Player.Character.Humanoid.JumpPower = getgenv().JumpPowerValue;
+   end,
+})
+
+local Input = Tab:CreateInput({
+   Name = "FOV (Original = 70)",
+   CurrentValue = "",
+   PlaceholderText = "enter FOV",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Input1",
+   Callback = function(Value)
+        game.Players.LocalPlayer.CameraMaxZoomDistance = (Value)
+
+   end,
+})
+
+Tab:CreateDivider()
+
+Tab:CreateButton({
+   Name = "CS Resoluiton",
+   Callback = function()
+   getgenv().Resolution = {
+    [".gg/scripters"] = 0.7
+}
+
+local Camera = workspace.CurrentCamera
+if getgenv().gg_scripters == nil then
+    game:GetService("RunService").RenderStepped:Connect(
+        function()
+            Camera.CFrame = Camera.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, getgenv().Resolution[".gg/scripters"], 0, 0, 0, 1)
+        end
+    )
+end
+getgenv().gg_scripters = "Aori0001"
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Firework Fling",
+   Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/rolezeay/fireworkfilng/refs/heads/main/hmmm"))() 
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Chat Mimicker",
+   Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/rolezeay/chatmimicker/refs/heads/main/hmmm"))() 
+   end,
+})
+
+Tab:CreateButton({
+   Name = "E to rewind character",
+   Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/zynlope/qkjtkqjwkrjqr/refs/heads/main/hmmmmmm"))() 
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Chat Logger",
+   Callback = function()
+loadstring(game:HttpGet("http://raw.githubusercontent.com/zynlope/askgjuqkwjru-oq/refs/heads/main/hmmmmmm"))() 
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Midnight Mode",
+   Callback = function()
+ local Lighting = game:GetService("Lighting")
+        Lighting.ClockTime = 24
+        Lighting.Ambient = Color3.fromRGB(50, 50, 50)
+        Lighting.OutdoorAmbient = Color3.fromRGB(50, 50, 50)
+        Lighting.FogColor = Color3.fromRGB(0, 0, 0)
+        Lighting.FogEnd = 500
+        Lighting.Brightness = 1.0
+    end,
 })
