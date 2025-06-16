@@ -901,6 +901,266 @@ local CopyButton = Tab:CreateButton({
 
 local Divider = Tab:CreateDivider()
 
+local Tab = Window:CreateTab("Server Info")
+local PlusLabel = Tab:CreateLabel("PLUS GAMEPASS: 0")
+local BoomboxLabel = Tab:CreateLabel("BOOMBOX GAMEPASS: 0")
+
+local function countAttributes()
+    local plusCount = 0
+    local boomboxCount = 0
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player:GetAttribute("PLUS") then
+            plusCount += 1
+        end
+        if player:GetAttribute("BoomBox") then
+            boomboxCount += 1
+        end
+    end
+
+    PlusLabel:Set("PLUS GAMEPASS OWNERS: " .. plusCount)
+    BoomboxLabel:Set("BOOMBOX GAMEPASS OWNERS: " .. boomboxCount)
+end
+
+countAttributes()
+
+Players.PlayerAdded:Connect(function(player)
+    player:GetPropertyChangedSignal("Parent"):Connect(countAttributes)
+
+    player.AttributeChanged:Connect(function()
+        countAttributes()
+    end)
+
+    task.wait(1)
+    countAttributes()
+end)
+
+Players.PlayerRemoving:Connect(function()
+    task.defer(countAttributes)
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+    player.AttributeChanged:Connect(function()
+        countAttributes()
+    end)
+end
+
+Tab:CreateDivider()
+
+local Players = game:GetService("Players")
+
+local selectedPlayer = nil
+
+local SelectedLabel = Tab:CreateLabel("Selected: None")
+local CoinsLabel = Tab:CreateLabel("(@None): Coins: 0")
+
+local function getPlayerByPartialName(partial)
+    partial = partial:lower()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Name:lower():sub(1, #partial) == partial then
+            return player
+        end
+        if player.DisplayName:lower():sub(1, #partial) == partial then
+            return player
+        end
+    end
+    return nil
+end
+
+local function updateCoinLabel()
+    if selectedPlayer and selectedPlayer.Parent == Players then
+        local coins = selectedPlayer:GetAttribute("Coins") or 0
+        CoinsLabel:Set("(@" .. selectedPlayer.DisplayName .. "): Coins: " .. coins)
+    else
+        CoinsLabel:Set("(@None): Coins: 0")
+    end
+end
+
+local Input = Tab:CreateInput({
+    Name = "Select Player (Display/User can be shortened)",
+    CurrentValue = "",
+    PlaceholderText = "Enter name or display...",
+    RemoveTextAfterFocusLost = false,
+    Flag = "PlayerSelector",
+    Callback = function(Text)
+        local found = getPlayerByPartialName(Text)
+        if found then
+            selectedPlayer = found
+            SelectedLabel:Set("Selected: " .. found.Name .. " (@" .. found.DisplayName .. ")")
+            updateCoinLabel()
+            found:GetAttributeChangedSignal("Coins"):Connect(function()
+                updateCoinLabel()
+            end)
+        else
+            selectedPlayer = nil
+            SelectedLabel:Set("Selected: None")
+            CoinsLabel:Set("(@None): Coins: 0")
+        end
+    end,
+})
+
+task.spawn(function()
+    while true do
+        updateCoinLabel()
+        task.wait(1)
+    end
+end)
+
+Tab:CreateDivider()
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Character = function() return LocalPlayer.Character end
+
+local following = false
+local followConnection
+
+Tab:CreateButton({
+    Name = "Go to Selected Player",
+    Callback = function()
+        if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = Character():FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+            end
+        end
+    end,
+})
+
+Tab:CreateButton({
+    Name = "Tween to Selected Player",
+    Callback = function()
+        if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = Character():FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local goal = {CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)}
+                local tween = TweenService:Create(hrp, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), goal)
+                tween:Play()
+            end
+        end
+    end,
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+local behindFollow = false
+
+Tab:CreateToggle({
+    Name = "Follow Behind Player",
+    CurrentValue = false,
+    Flag = "FollowBehindToggle",
+    Callback = function(Value)
+        behindFollow = Value
+        if Value then
+            task.spawn(function()
+                while behindFollow and selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") do
+                    local root = Character:FindFirstChild("HumanoidRootPart")
+                    local targetRoot = selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if root and targetRoot then
+                        local offset = targetRoot.CFrame.LookVector * -3
+                        root.CFrame = CFrame.new(targetRoot.Position + offset, targetRoot.Position)
+                    end
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end,
+})
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Character = function() return LocalPlayer.Character end
+local Humanoid = function() return Character() and Character():FindFirstChildOfClass("Humanoid") end
+local AnimController = {}
+local followConnection, floatConnection, spinConnection = nil, nil, nil
+
+local function playCurrentAnimation()
+    local humanoid = Humanoid()
+    if humanoid then
+        local playingTracks = humanoid:GetPlayingAnimationTracks()
+        for _, track in ipairs(playingTracks) do
+            if track.IsPlaying then
+                track:Stop()
+                task.wait()
+                track:Play()
+                break
+            end
+        end
+    end
+end
+
+Tab:CreateToggle({
+    Name = "Float Around Selected Player",
+    CurrentValue = false,
+    Callback = function(state)
+        if floatConnection then
+            floatConnection:Disconnect()
+            floatConnection = nil
+        end
+
+        if state and selectedPlayer and selectedPlayer.Character then
+            playCurrentAnimation()
+            local angle = 0
+            floatConnection = RunService.Heartbeat:Connect(function()
+                if not selectedPlayer or not selectedPlayer.Character then return end
+                local target = selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+                local me = Character() and Character():FindFirstChild("HumanoidRootPart")
+                if not target or not me then return end
+
+                angle += math.rad(2)
+                local radius = 5
+                local offset = Vector3.new(math.cos(angle) * radius, 2.5, math.sin(angle) * radius)
+                me.CFrame = CFrame.new(target.Position + offset, target.Position)
+            end)
+        end
+    end,
+})
+
+local LocalPlayer = Players.LocalPlayer
+local spinAround = false
+local spinRadius = 5
+local spinSpeed = math.rad(120) -- radians per second (120 deg/sec)
+local angle = 0
+
+local connection
+
+Tab:CreateToggle({
+    Name = "Spin Around Selected Player",
+    CurrentValue = false,
+    Flag = "SpinAroundToggleSmooth",
+    Callback = function(Value)
+        spinAround = Value
+
+        if spinAround then
+            angle = 0
+            connection = RunService.RenderStepped:Connect(function(dt)
+                local character = LocalPlayer.Character
+                local root = character and character:FindFirstChild("HumanoidRootPart")
+                local target = selectedPlayer
+                local targetRoot = target and target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+
+                if root and targetRoot then
+                    angle = (angle + spinSpeed * dt) % (2 * math.pi)
+                    local offset = Vector3.new(math.cos(angle) * spinRadius, 0, math.sin(angle) * spinRadius)
+                    local desiredCFrame = CFrame.new(targetRoot.Position + offset, targetRoot.Position)
+                    -- Smoothly interpolate to the desired position
+                    root.CFrame = root.CFrame:Lerp(desiredCFrame, 0.2)
+                end
+            end)
+        else
+            if connection then
+                connection:Disconnect()
+                connection = nil
+            end
+        end
+    end,
+})
+
 local Tab = Window:CreateTab("Items")
 
 Tab:CreateSection("Spam Items")
