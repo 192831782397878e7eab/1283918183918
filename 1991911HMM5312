@@ -806,6 +806,13 @@ local serverbrowsermodule = require(game.Players.LocalPlayer.PlayerGui:WaitForCh
     end
 })
 
+Tab:CreateButton({
+   Name = "Unban voice chat",
+   Callback = function()
+game:GetService("VoiceChatService"):joinVoice()
+ end,
+})
+
 local Section = Tab:CreateSection("backyard teleporter")
 
 
