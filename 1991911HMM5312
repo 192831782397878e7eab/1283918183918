@@ -452,6 +452,62 @@ game:GetService("ReplicatedStorage"):WaitForChild("FunctionConnections", 9e9):Wa
    end,
 })
 
+Tab:CreateDivider()
+
+Tab:CreateButton({
+   Name = "Loop Animation",
+   Callback = function()
+game.Players.LocalPlayer.Character.Animate.Disabled = true
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Unloop Animation",
+   Callback = function()
+game.Players.LocalPlayer.Character.Animate.Disabled = false
+   end,
+})
+
+Tab:CreateInput({
+   Name = "Animation Speed",
+   CurrentValue = "",
+   PlaceholderText = "enter speed",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Input1",
+   Callback = function(value)
+     local giga = game.Players.LocalPlayer.Character
+    local liga = giga:FindFirstChildOfClass("Humanoid") or Char:FindFirstChildOfClass("AnimationController")
+
+    for i,v in next, liga:GetPlayingAnimationTracks() do
+        v:AdjustSpeed(value)
+    end
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Double speed",
+   Callback = function()
+ local giga = game.Players.LocalPlayer.Character
+    local liga = giga:FindFirstChildOfClass("Humanoid") or Char:FindFirstChildOfClass("AnimationController")
+
+    for i,v in next, liga:GetPlayingAnimationTracks() do
+        v:AdjustSpeed(v.Speed * 2)
+    end
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Decrease speed",
+   Callback = function()
+local giga = game.Players.LocalPlayer.Character
+    local liga = giga:FindFirstChildOfClass("Humanoid") or Char:FindFirstChildOfClass("AnimationController")
+
+    for i,v in next, liga:GetPlayingAnimationTracks() do
+        v:AdjustSpeed(v.Speed * 0.5)
+    end
+   end,
+})
+
 local Tab = Window:CreateTab("Avatar Editor")
 
 local args = {
